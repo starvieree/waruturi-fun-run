@@ -1,0 +1,23 @@
+---
+// src/pages/news/[slug].astro
+import Layout from '../../layouts/Layout.astro';
+import NewsDetail from '../../components/landing/NewsDetail.astro';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+// Type guard untuk memastikan slug adalah string
+const slugString = typeof slug === 'string' ? slug : '';
+
+// Jika slug kosong, redirect ke /news
+if (!slugString) {
+  return Astro.redirect('/news');
+}
+
+console.log('📄 Page slug from params:', slugString);
+---
+
+<Layout title={`Berita - Waru Turi Fun Run 2026`}>
+  <NewsDetail slug={slugString} />
+</Layout>

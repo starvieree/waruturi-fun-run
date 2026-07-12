@@ -1,0 +1,257 @@
+---
+// src/components/landing/NewsDetail.astro
+import { createClient } from '@supabase/supabase-js';
+
+export interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_ANON_KEY;
+
+// Debug
+console.log('🔍 NewsDetail - Fetching slug:', slug);
+console.log('🔍 NewsDetail - Supabase URL:', supabaseUrl ? '✅ Ada' : '❌ Tidak ada');
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing Supabase environment variables in NewsDetail!');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Fetch news by slug - gunakan maybeSingle() 
+const { data: news, error } = await supabase
+  .from('news')
+  .select('*')
+  .eq('slug', slug)
+  .eq('published', true)
+  .maybeSingle();
+
+// Debug
+if (error) {
+  console.error('❌ Error fetching news detail:', error);
+}
+
+if (!news) {
+  console.log('⚠️ News not found for slug:', slug);
+} else {
+  console.log('✅ News found:', news.title);
+}
+
+// Cek apakah news ditemukan
+const isNotFound = !news || error;
+
+// Format tanggal
+const formatDate = (date: string) => {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
+const formatTime = (date: string) => {
+  if (!date) return '';
+  return new Date(date).toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+---
+
+<section class="py-16 bg-white dark:bg-gray-800">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/" class="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400">
+            <i class="fas fa-home mr-1"></i> Beranda
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            <a href="/news" class="ml-1 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400">Berita</a>
+          </div>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            <span class="ml-1 text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+              {isNotFound ? 'Tidak Ditemukan' : news?.title || 'Loading...'}
+            </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Jika berita tidak ditemukan -->
+    {isNotFound ? (
+      <div class="text-center py-12">
+        <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-newspaper text-4xl text-gray-400 dark:text-gray-500"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Berita Tidak Ditemukan</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Maaf, berita yang Anda cari tidak tersedia atau telah dihapus.
+        </p>
+        <a 
+          href="/news" 
+          class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+        >
+          <i class="fas fa-arrow-left mr-2"></i>
+          Kembali ke Daftar Berita
+        </a>
+      </div>
+    ) : (
+      <>
+        <!-- News Header -->
+        <div class="mb-8">
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              <i class="far fa-calendar-alt mr-1"></i>
+              {formatDate(news?.created_at)}
+            </span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              <i class="far fa-clock mr-1"></i>
+              {formatTime(news?.created_at)}
+            </span>
+            {news?.published && (
+              <span class="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full">
+                Published
+              </span>
+            )}
+          </div>
+          
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            {news?.title}
+          </h1>
+        </div>
+
+        <!-- Featured Image -->
+        {news?.image && (
+          <div class="mb-8 rounded-xl overflow-hidden">
+            <img 
+              src={news.image} 
+              alt={news.title} 
+              class="w-full h-auto max-h-[400px] object-cover"
+              loading="lazy"
+              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'400\'%3E%3Crect width=\'800\' height=\'400\' fill=\'%2333a85a\'/%3E%3Ctext x=\'400\' y=\'200\' text-anchor=\'middle\' fill=\'white\' font-size=\'24\' font-family=\'Arial\'%3ENo Image%3C/text%3E%3C/svg%3E'"
+            />
+          </div>
+        )}
+
+        <!-- News Content -->
+        <div class="prose prose-green dark:prose-invert max-w-none">
+          {news?.content ? (
+            <div set:html={news.content} />
+          ) : (
+            <p class="text-gray-600 dark:text-gray-400">Konten berita tidak tersedia.</p>
+          )}
+        </div>
+
+        <!-- Share Section -->
+        <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Bagikan Berita:</h4>
+          <div class="flex flex-wrap gap-3">
+            <a 
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(Astro.url.href)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a 
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(Astro.url.href)}&text=${encodeURIComponent(news?.title || '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-10 h-10 bg-sky-500 hover:bg-sky-600 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a 
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent((news?.title || '') + ' ' + Astro.url.href)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <i class="fab fa-whatsapp"></i>
+            </a>
+            <a 
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.href)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-10 h-10 bg-blue-700 hover:bg-blue-800 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <button 
+              onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('Link berhasil disalin!'))" 
+              class="w-10 h-10 bg-gray-600 hover:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <i class="fas fa-link"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Back to News -->
+        <div class="mt-8 text-center">
+          <a href="/news" class="inline-flex items-center text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Kembali ke Daftar Berita
+          </a>
+        </div>
+      </>
+    )}
+  </div>
+</section>
+
+<style>
+  .prose {
+    max-width: 65ch;
+    color: #374151;
+  }
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #1f2937;
+  }
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+  }
+  .prose p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+  .prose ul, .prose ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+  .prose li {
+    margin-bottom: 0.5rem;
+  }
+  .prose img {
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+    max-width: 100%;
+  }
+  .dark .prose {
+    color: #d1d5db;
+  }
+  .dark .prose h2,
+  .dark .prose h3 {
+    color: #f3f4f6;
+  }
+</style>

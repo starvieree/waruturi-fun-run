@@ -1,0 +1,133 @@
+---
+// src/pages/auth/login.astro
+import { supabase } from "../../lib/supabase";
+
+let errorMessage = "";
+
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    const email = formData.get("email")?.toString() || "";
+    const password = formData.get("password")?.toString() || "";
+
+    // 1. Validasi Login ke Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      throw new Error("Email atau password salah!");
+    }
+
+    const session = authData.session;
+    if (!session) throw new Error("Sesi tidak ditemukan.");
+
+    // =========================================================================
+    // PENTING: SET SESSION KE KLIEN SUPABASE SEBELUM MELAKUKAN QUERY PROFILES
+    // =========================================================================
+    await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+
+    // 2. Cek Role di Tabel Profiles (Sekarang dijamin lolos RLS karena session sudah di-set)
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("auth_id", authData.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error(`Akses ditolak: Gagal membaca data profil atau RLS memblokir.`);
+    }
+
+    if (profile.role !== "super_admin") {
+      await supabase.auth.signOut();
+      throw new Error("Akses ditolak! Anda bukan Super Admin.");
+    }
+
+    // 3. Simpan Session ke Cookies Astro untuk halaman lain
+    Astro.cookies.set("sb-access-token", session.access_token, {
+      path: "/admin", secure: true, httpOnly: true, sameSite: "lax", maxAge: session.expires_in,
+    });
+    Astro.cookies.set("sb-refresh-token", session.refresh_token, {
+      path: "/admin", secure: true, httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7,
+    });
+
+    // Sukses, alihkan ke dashboard admin
+    return Astro.redirect("/admin");
+  } catch (err: any) {
+    errorMessage = err.message;
+  }
+}
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Waruturi Fun Run</title>
+    <!-- Flowbite CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"
+    />
+  </head>
+  <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-sm mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 class="text-xl font-bold text-gray-900 mb-6 text-center">
+        Masuk ke Akun
+      </h2>
+
+      <form id="loginForm" class="max-w-sm mx-auto" method="POST" action="">
+        <div class="mb-5">
+          <label
+            for="email"
+            class="block mb-2.5 text-sm font-medium text-gray-900"
+            >Your email</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm placeholder:text-gray-500"
+            placeholder="name@flowbite.com"
+            required
+          />
+        </div>
+        <div class="mb-5">
+          <label
+            for="password"
+            class="block mb-2.5 text-sm font-medium text-gray-900"
+            >Your password</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm placeholder:text-gray-500"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        {
+          errorMessage && (
+            <div class="mb-4 text-sm p-3 rounded-lg bg-red-100 text-red-800">
+              {errorMessage}
+            </div>
+          )
+        }
+
+        <button
+          type="submit"
+          id="submitBtn"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 shadow-sm w-full focus:outline-none"
+          >Submit</button
+        >
+      </form>
+    </div>
+  </body>
+</html>

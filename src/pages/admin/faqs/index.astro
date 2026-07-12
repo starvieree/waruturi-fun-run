@@ -1,0 +1,692 @@
+---
+// src/pages/admin/faqs/index.astro
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
+
+const { data: faqs, error } = await supabase
+  .from("faqs")
+  .select("*")
+  .order("ordering", { ascending: true });
+---
+
+<AdminLayout title="Manage FAQs">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <!-- Manage FAQs -->
+    </h1>
+    <button
+      onclick="openCreateModal()"
+      class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+    >
+      <i class="fas fa-plus mr-2"></i> Add New FAQ
+    </button>
+  </div>
+
+  <!-- Error message if any -->
+  {
+    error && (
+      <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+        <i class="fas fa-exclamation-circle mr-2" />
+        Failed to load FAQs: {error.message}
+      </div>
+    )
+  }
+
+  <div
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr>
+            <th class="px-6 py-3">No</th>
+            <th class="px-6 py-3">Question</th>
+            <th class="px-6 py-3">Answer</th>
+            <th class="px-6 py-3">Order</th>
+            <th class="px-6 py-3 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            faqs && faqs.length > 0 ? (
+              faqs.map((faq, index) => (
+                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td class="px-6 py-4 text-gray-900 dark:text-white">
+                    {index + 1}
+                  </td>
+                  <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                    {faq.question}
+                  </td>
+                  <td class="px-6 py-4 max-w-md truncate">
+                    {faq.answer || "-"}
+                  </td>
+                  <td class="px-6 py-4">
+                    {faq.ordering || 1}
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        data-id={faq.id}
+                        class="edit-btn text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        type="button"
+                      >
+                        <i class="fas fa-edit" />
+                      </button>
+                      <button
+                        data-id={faq.id}
+                        data-question={faq.question}
+                        class="delete-btn text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        type="button"
+                      >
+                        <i class="fas fa-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colspan="5"
+                  class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                >
+                  No FAQs found
+                </td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div
+    id="createModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="create-modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeCreateModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="text-lg font-medium text-gray-900 dark:text-white"
+              id="create-modal-title"
+            >
+              <i class="fas fa-plus mr-2 text-blue-600"></i>
+              Add New FAQ
+            </h3>
+            <button
+              onclick="closeCreateModal()"
+              class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              type="button"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="createForm" class="mt-2 space-y-4">
+            <!-- Question -->
+            <div>
+              <label
+                for="createQuestion"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Question <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="createQuestion"
+                name="question"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Enter frequently asked question"
+              />
+            </div>
+
+            <!-- Answer -->
+            <div>
+              <label
+                for="createAnswer"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Answer <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                id="createAnswer"
+                name="answer"
+                rows="4"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Enter the answer to the question"
+              ></textarea>
+            </div>
+
+            <!-- Ordering -->
+            <div>
+              <label
+                for="createOrdering"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Order
+              </label>
+              <input
+                type="number"
+                id="createOrdering"
+                name="ordering"
+                min="1"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Display order (1 = first)"
+              />
+              <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                Leave blank to auto-assign
+              </p>
+            </div>
+
+            <!-- Buttons -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeCreateModal()"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1.5"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-plus mr-1.5"></i>
+                Add FAQ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div
+    id="editModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeEditModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="text-lg font-medium text-gray-900 dark:text-white"
+              id="modal-title"
+            >
+              <i class="fas fa-edit mr-2 text-blue-600"></i>
+              Edit FAQ
+            </h3>
+            <button
+              onclick="closeEditModal()"
+              class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              type="button"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="editForm" class="mt-2 space-y-4">
+            <input type="hidden" id="editFaqId" name="id" />
+
+            <!-- Question -->
+            <div>
+              <label
+                for="editQuestion"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Question <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="editQuestion"
+                name="question"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Enter frequently asked question"
+              />
+            </div>
+
+            <!-- Answer -->
+            <div>
+              <label
+                for="editAnswer"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Answer <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                id="editAnswer"
+                name="answer"
+                rows="4"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Enter the answer to the question"
+              ></textarea>
+            </div>
+
+            <!-- Ordering -->
+            <div>
+              <label
+                for="editOrdering"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Order
+              </label>
+              <input
+                type="number"
+                id="editOrdering"
+                name="ordering"
+                min="1"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Display order (1 = first)"
+              />
+            </div>
+
+            <!-- Buttons -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeEditModal()"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1.5"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-save mr-1.5"></i>
+                Update FAQ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    id="deleteModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="delete-modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeDeleteModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-start">
+            <div
+              class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30"
+            >
+              <i
+                class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"
+              ></i>
+            </div>
+            <div class="ml-4">
+              <h3
+                class="text-lg font-medium text-gray-900 dark:text-white"
+                id="delete-modal-title"
+              >
+                Delete FAQ
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Are you sure you want to delete "<span
+                    id="deleteFaqQuestion"
+                    class="font-medium text-gray-700 dark:text-gray-300"
+                  ></span>"? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form id="deleteForm" class="mt-4">
+            <input type="hidden" id="deleteFaqId" name="id" />
+            <div
+              class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeDeleteModal()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-trash mr-1"></i>
+                Delete FAQ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    .modal-backdrop {
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    #createModal,
+    #editModal,
+    #deleteModal {
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+
+  <script is:inline>
+    // Create Modal Functions
+    window.openCreateModal = function () {
+      document.getElementById("createModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      document.getElementById("createForm").reset();
+      document.getElementById("createOrdering").value = "";
+    };
+
+    window.closeCreateModal = function () {
+      document.getElementById("createModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Edit Modal Functions
+    window.openEditModal = function (faqId) {
+      if (!faqId) {
+        alert("Invalid FAQ ID");
+        return;
+      }
+
+      fetch(`/api/admin/faqs/${faqId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data && data.data) {
+            const faq = data.data;
+            document.getElementById("editFaqId").value = faq.id;
+            document.getElementById("editQuestion").value = faq.question || "";
+            document.getElementById("editAnswer").value = faq.answer || "";
+            document.getElementById("editOrdering").value = faq.ordering || "";
+
+            document.getElementById("editModal").classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+          } else {
+            alert("FAQ not found");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching FAQ:", error);
+          alert("Failed to load FAQ data: " + error.message);
+        });
+    };
+
+    window.closeEditModal = function () {
+      document.getElementById("editModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Delete Modal Functions
+    window.openDeleteModal = function (faqId, faqQuestion) {
+      if (!faqId) {
+        alert("Invalid FAQ ID");
+        return;
+      }
+
+      document.getElementById("deleteFaqId").value = faqId;
+      document.getElementById("deleteFaqQuestion").textContent =
+        faqQuestion || "Untitled FAQ";
+      document.getElementById("deleteModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    };
+
+    window.closeDeleteModal = function () {
+      document.getElementById("deleteModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Initialize event listeners
+    document.addEventListener("DOMContentLoaded", function () {
+      // Create form submission
+      const createForm = document.getElementById("createForm");
+      if (createForm) {
+        createForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const question = formData.get("question");
+          const answer = formData.get("answer");
+
+          if (!question) {
+            alert("Question is required");
+            return;
+          }
+          if (!answer) {
+            alert("Answer is required");
+            return;
+          }
+
+          const data = {
+            question: question,
+            answer: answer,
+            ordering: formData.get("ordering") 
+              ? parseInt(formData.get("ordering")) 
+              : undefined,
+          };
+
+          try {
+            const response = await fetch("/api/admin/faqs", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success) {
+                window.closeCreateModal();
+                window.location.reload();
+              } else {
+                alert("Failed to create FAQ: " + (result.error || "Unknown error"));
+              }
+            } else {
+              const error = await response.json();
+              alert("Failed to create FAQ: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error creating FAQ:", error);
+            alert("Failed to create FAQ: " + error.message);
+          }
+        });
+      }
+
+      // Edit buttons
+      document.querySelectorAll(".edit-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const faqId = this.dataset.id;
+          window.openEditModal(faqId);
+        });
+      });
+
+      // Delete buttons
+      document.querySelectorAll(".delete-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const faqId = this.dataset.id;
+          const faqQuestion = this.dataset.question;
+          window.openDeleteModal(faqId, faqQuestion);
+        });
+      });
+
+      // Edit form submission
+      const editForm = document.getElementById("editForm");
+      if (editForm) {
+        editForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const faqId = formData.get("id");
+
+          if (!faqId) {
+            alert("FAQ ID is missing");
+            return;
+          }
+
+          const data = {
+            question: formData.get("question"),
+            answer: formData.get("answer"),
+            ordering: formData.get("ordering") 
+              ? parseInt(formData.get("ordering")) 
+              : undefined,
+          };
+
+          try {
+            const response = await fetch(`/api/admin/faqs/${faqId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+              window.closeEditModal();
+              window.location.reload();
+            } else {
+              const error = await response.json();
+              alert("Failed to update FAQ: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error updating FAQ:", error);
+            alert("Failed to update FAQ: " + error.message);
+          }
+        });
+      }
+
+      // Delete form submission
+      const deleteForm = document.getElementById("deleteForm");
+      if (deleteForm) {
+        deleteForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const faqId = formData.get("id");
+
+          if (!faqId) {
+            alert("FAQ ID is missing");
+            return;
+          }
+
+          try {
+            const response = await fetch(`/api/admin/faqs/${faqId}`, {
+              method: "DELETE",
+            });
+
+            if (response.ok) {
+              window.closeDeleteModal();
+              window.location.reload();
+            } else {
+              const error = await response.json();
+              alert("Failed to delete FAQ: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error deleting FAQ:", error);
+            alert("Failed to delete FAQ: " + error.message);
+          }
+        });
+      }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        window.closeCreateModal();
+        window.closeEditModal();
+        window.closeDeleteModal();
+      }
+    });
+  </script>
+</AdminLayout>

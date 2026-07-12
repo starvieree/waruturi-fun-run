@@ -1,0 +1,108 @@
+---
+// src/components/RaceInfo.astro
+---
+
+<section class="py-16 bg-white dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h3 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">Informasi Race</h3>
+  
+      <!-- Tabs -->
+      <div class="border-b border-gray-200 dark:border-gray-700 mb-8">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+          <li class="me-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Race Info</button>
+          </li>
+          <li class="me-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">Keamanan Race</button>
+          </li>
+          <li class="me-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="settings-tab" data-tabs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">Performa & Rute</button>
+          </li>
+          <li role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="contacts-tab" data-tabs-target="#contacts" type="button" role="tab" aria-controls="contacts" aria-selected="false">Layanan Peserta</button>
+          </li>
+        </ul>
+      </div>
+      <div id="default-tab-content">
+        <!-- Tab 1: Race Info -->
+        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informasi Umum Fun Run</h4>
+          <p class="text-gray-600 dark:text-gray-300">Event Fun Run ini dirancang untuk semua kalangan, mulai dari pelari pemula hingga profesional. Peserta akan menikmati suasana lari santai, hiburan musik, serta berbagai fasilitas menarik.</p>
+          <ul class="mt-4 space-y-2 text-gray-600 dark:text-gray-300">
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Jarak lari 5K & 10K</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Start & finish area nyaman</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Tersedia water station</li>
+          </ul>
+          <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              <i class="fas fa-user-check text-blue-500 mr-2"></i>
+              <strong>Amelia Nur Rizkita</strong> telah mendaftar Waru Turi Fun Run <span class="font-semibold text-green-600">5K</span>
+            </p>
+          </div>
+          <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm">
+              <p class="text-xs text-gray-500">Tanggal</p>
+              <p class="font-semibold text-sm">15 Februari 2024</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm">
+              <p class="text-xs text-gray-500">Waktu</p>
+              <p class="font-semibold text-sm">05.30 - 10.00 WIB</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm">
+              <p class="text-xs text-gray-500">Lokasi</p>
+              <p class="font-semibold text-sm">Bendung Gerak Waru Turi</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm">
+              <p class="text-xs text-gray-500">Kabupaten</p>
+              <p class="font-semibold text-sm">Kediri</p>
+            </div>
+          </div>
+        </div>
+        <!-- Tab 2: Keamanan Race -->
+        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Sistem Keamanan Peserta</h4>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">Keamanan peserta adalah prioritas utama. Tim marshal, medis, dan keamanan akan berjaga di sepanjang rute untuk memastikan kenyamanan dan keselamatan pelari.</p>
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Marshal sepanjang rute</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Tim medis & ambulans standby</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Pengamanan area event</li>
+          </ul>
+          <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              <i class="fas fa-user-check text-blue-500 mr-2"></i>
+              <strong>Priyo Sambodo</strong> telah mendaftar Waru Turi Fun Run <span class="font-semibold text-yellow-600">10K</span>
+            </p>
+          </div>
+        </div>
+        <!-- Tab 3: Performa & Rute -->
+        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Performa Lari & Rute</h4>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">Rute dirancang dengan jalur yang aman dan nyaman, memberikan pengalaman berlari terbaik bagi seluruh peserta, baik pelari santai maupun yang ingin berkompetisi.</p>
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Rute aman & jelas</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Penanda jarak setiap 1 km</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Jalur datar & Nyaman</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Cocok untuk personal best</li>
+          </ul>
+          <div class="mt-4 p-3 bg-gray-100 dark:bg-gray-600/30 rounded-lg text-center">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Lapangan Rute</p>
+          </div>
+        </div>
+        <!-- Tab 4: Layanan Peserta -->
+        <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Layanan & Fasilitas Peserta</h4>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">Untuk memberikan pengalaman terbaik, peserta mendapatkan berbagai fasilitas pendukung mulai dari starter kit, hiburan, hingga area istirahat.</p>
+          <ul class="grid grid-cols-2 gap-2 text-gray-600 dark:text-gray-300">
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Jersey Official</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> BIB peserta</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Doorprize & hadiah</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Hiburan musik & MC</li>
+            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Area istirahat nyaman</li>
+          </ul>
+          <div class="mt-4 p-3 bg-gray-100 dark:bg-gray-600/30 rounded-lg text-center">
+            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">FUN RUN <span class="text-green-600">1000</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>

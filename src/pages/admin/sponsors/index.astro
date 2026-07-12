@@ -1,0 +1,742 @@
+---
+// src/pages/admin/sponsors/index.astro
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { supabase } from "../../../lib/supabase";
+
+const { data: sponsors, error } = await supabase
+  .from("sponsors")
+  .select("*")
+  .order("name", { ascending: true });
+---
+
+<AdminLayout title="Manage Sponsors">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <!-- Manage Sponsors -->
+    </h1>
+    <button
+      onclick="openCreateModal()"
+      class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+    >
+      <i class="fas fa-plus mr-2"></i> Add New Sponsor
+    </button>
+  </div>
+
+  <!-- Error message if any -->
+  {
+    error && (
+      <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+        <i class="fas fa-exclamation-circle mr-2" />
+        Failed to load sponsors: {error.message}
+      </div>
+    )
+  }
+
+  <div
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+        >
+          <tr>
+            <th class="px-6 py-3">No</th>
+            <th class="px-6 py-3">Logo</th>
+            <th class="px-6 py-3">Name</th>
+            <th class="px-6 py-3">Website</th>
+            <th class="px-6 py-3 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            sponsors && sponsors.length > 0 ? (
+              sponsors.map((sponsor, index) => (
+                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td class="px-6 py-4 text-gray-900 dark:text-white">
+                    {index + 1}
+                  </td>
+                  <td class="px-6 py-4">
+                    {sponsor.logo ? (
+                      <img 
+                        src={sponsor.logo} 
+                        alt={sponsor.name}
+                        class="w-12 h-12 object-contain rounded-lg"
+                        onerror="this.style.display='none'"
+                      />
+                    ) : (
+                      <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-image text-gray-400 dark:text-gray-500"></i>
+                      </div>
+                    )}
+                  </td>
+                  <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                    {sponsor.name || "-"}
+                  </td>
+                  <td class="px-6 py-4">
+                    {sponsor.website ? (
+                      <a 
+                        href={sponsor.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        {sponsor.website}
+                      </a>
+                    ) : "-"}
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        data-id={sponsor.id}
+                        class="edit-btn text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        type="button"
+                      >
+                        <i class="fas fa-edit" />
+                      </button>
+                      <button
+                        data-id={sponsor.id}
+                        data-name={sponsor.name}
+                        class="delete-btn text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        type="button"
+                      >
+                        <i class="fas fa-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colspan="5"
+                  class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                >
+                  No sponsors found
+                </td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div
+    id="createModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="create-modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeCreateModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="text-lg font-medium text-gray-900 dark:text-white"
+              id="create-modal-title"
+            >
+              <i class="fas fa-plus mr-2 text-blue-600"></i>
+              Add New Sponsor
+            </h3>
+            <button
+              onclick="closeCreateModal()"
+              class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              type="button"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="createForm" class="mt-2 space-y-4">
+            <!-- Name -->
+            <div>
+              <label
+                for="createName"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="createName"
+                name="name"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Sponsor name"
+              />
+            </div>
+
+            <!-- Logo URL -->
+            <div>
+              <label
+                for="createLogo"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Logo URL
+              </label>
+              <input
+                type="url"
+                id="createLogo"
+                name="logo"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="https://example.com/logo.png"
+              />
+              <div id="createLogoPreview" class="mt-2 hidden">
+                <img id="createLogoPreviewImg" src="" alt="Preview" class="h-16 w-16 object-contain rounded-lg border border-gray-200 dark:border-gray-600" />
+              </div>
+            </div>
+
+            <!-- Website -->
+            <div>
+              <label
+                for="createWebsite"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Website URL
+              </label>
+              <input
+                type="url"
+                id="createWebsite"
+                name="website"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="https://www.example.com"
+              />
+            </div>
+
+            <!-- Buttons -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeCreateModal()"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1.5"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-plus mr-1.5"></i>
+                Add Sponsor
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div
+    id="editModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeEditModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="text-lg font-medium text-gray-900 dark:text-white"
+              id="modal-title"
+            >
+              <i class="fas fa-edit mr-2 text-blue-600"></i>
+              Edit Sponsor
+            </h3>
+            <button
+              onclick="closeEditModal()"
+              class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              type="button"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="editForm" class="mt-2 space-y-4">
+            <input type="hidden" id="editSponsorId" name="id" />
+
+            <!-- Name -->
+            <div>
+              <label
+                for="editName"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="editName"
+                name="name"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="Sponsor name"
+              />
+            </div>
+
+            <!-- Logo URL -->
+            <div>
+              <label
+                for="editLogo"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Logo URL
+              </label>
+              <input
+                type="url"
+                id="editLogo"
+                name="logo"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="https://example.com/logo.png"
+              />
+              <div id="editLogoPreview" class="mt-2 hidden">
+                <img id="editLogoPreviewImg" src="" alt="Preview" class="h-16 w-16 object-contain rounded-lg border border-gray-200 dark:border-gray-600" />
+              </div>
+            </div>
+
+            <!-- Website -->
+            <div>
+              <label
+                for="editWebsite"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Website URL
+              </label>
+              <input
+                type="url"
+                id="editWebsite"
+                name="website"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                placeholder="https://www.example.com"
+              />
+            </div>
+
+            <!-- Buttons -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeEditModal()"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1.5"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-save mr-1.5"></i>
+                Update Sponsor
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    id="deleteModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="delete-modal-title"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onclick="closeDeleteModal()"
+      >
+      </div>
+      <span
+        class="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true">&#8203;</span
+      >
+
+      <div
+        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+      >
+        <div class="px-6 pt-6 pb-4">
+          <div class="flex items-start">
+            <div
+              class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30"
+            >
+              <i
+                class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"
+              ></i>
+            </div>
+            <div class="ml-4">
+              <h3
+                class="text-lg font-medium text-gray-900 dark:text-white"
+                id="delete-modal-title"
+              >
+                Delete Sponsor
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Are you sure you want to delete sponsor "<span
+                    id="deleteSponsorName"
+                    class="font-medium text-gray-700 dark:text-gray-300"
+                  ></span>"? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form id="deleteForm" class="mt-4">
+            <input type="hidden" id="deleteSponsorId" name="id" />
+            <div
+              class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                onclick="closeDeleteModal()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-times mr-1"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              >
+                <i class="fas fa-trash mr-1"></i>
+                Delete Sponsor
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    .modal-backdrop {
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    #createModal,
+    #editModal,
+    #deleteModal {
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+
+  <script is:inline>
+    // Create Modal Functions
+    window.openCreateModal = function () {
+      document.getElementById("createModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      document.getElementById("createForm").reset();
+      document.getElementById("createLogoPreview").classList.add("hidden");
+    };
+
+    window.closeCreateModal = function () {
+      document.getElementById("createModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Edit Modal Functions
+    window.openEditModal = function (sponsorId) {
+      if (!sponsorId) {
+        alert("Invalid Sponsor ID");
+        return;
+      }
+
+      fetch(`/api/admin/sponsors/${sponsorId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data && data.data) {
+            const sponsor = data.data;
+            document.getElementById("editSponsorId").value = sponsor.id;
+            document.getElementById("editName").value = sponsor.name || "";
+            document.getElementById("editLogo").value = sponsor.logo || "";
+            document.getElementById("editWebsite").value = sponsor.website || "";
+
+            // Show logo preview
+            if (sponsor.logo) {
+              const preview = document.getElementById("editLogoPreview");
+              const img = document.getElementById("editLogoPreviewImg");
+              img.src = sponsor.logo;
+              preview.classList.remove("hidden");
+            } else {
+              document.getElementById("editLogoPreview").classList.add("hidden");
+            }
+
+            document.getElementById("editModal").classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+          } else {
+            alert("Sponsor not found");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching sponsor:", error);
+          alert("Failed to load sponsor data: " + error.message);
+        });
+    };
+
+    window.closeEditModal = function () {
+      document.getElementById("editModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Delete Modal Functions
+    window.openDeleteModal = function (sponsorId, sponsorName) {
+      if (!sponsorId) {
+        alert("Invalid Sponsor ID");
+        return;
+      }
+
+      document.getElementById("deleteSponsorId").value = sponsorId;
+      document.getElementById("deleteSponsorName").textContent =
+        sponsorName || "Untitled Sponsor";
+      document.getElementById("deleteModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    };
+
+    window.closeDeleteModal = function () {
+      document.getElementById("deleteModal").classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    // Initialize event listeners
+    document.addEventListener("DOMContentLoaded", function () {
+      // Logo preview on create
+      const createLogoInput = document.getElementById("createLogo");
+      if (createLogoInput) {
+        createLogoInput.addEventListener("input", function () {
+          const preview = document.getElementById("createLogoPreview");
+          const img = document.getElementById("createLogoPreviewImg");
+          if (this.value) {
+            img.src = this.value;
+            preview.classList.remove("hidden");
+          } else {
+            preview.classList.add("hidden");
+          }
+        });
+      }
+
+      // Logo preview on edit
+      const editLogoInput = document.getElementById("editLogo");
+      if (editLogoInput) {
+        editLogoInput.addEventListener("input", function () {
+          const preview = document.getElementById("editLogoPreview");
+          const img = document.getElementById("editLogoPreviewImg");
+          if (this.value) {
+            img.src = this.value;
+            preview.classList.remove("hidden");
+          } else {
+            preview.classList.add("hidden");
+          }
+        });
+      }
+
+      // Create form submission
+      const createForm = document.getElementById("createForm");
+      if (createForm) {
+        createForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const name = formData.get("name");
+
+          if (!name) {
+            alert("Sponsor name is required");
+            return;
+          }
+
+          const data = {
+            name: name,
+            logo: formData.get("logo") || null,
+            website: formData.get("website") || null,
+          };
+
+          try {
+            const response = await fetch("/api/admin/sponsors", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success) {
+                window.closeCreateModal();
+                window.location.reload();
+              } else {
+                alert("Failed to create sponsor: " + (result.error || "Unknown error"));
+              }
+            } else {
+              const error = await response.json();
+              alert("Failed to create sponsor: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error creating sponsor:", error);
+            alert("Failed to create sponsor: " + error.message);
+          }
+        });
+      }
+
+      // Edit buttons
+      document.querySelectorAll(".edit-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const sponsorId = this.dataset.id;
+          window.openEditModal(sponsorId);
+        });
+      });
+
+      // Delete buttons
+      document.querySelectorAll(".delete-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const sponsorId = this.dataset.id;
+          const sponsorName = this.dataset.name;
+          window.openDeleteModal(sponsorId, sponsorName);
+        });
+      });
+
+      // Edit form submission
+      const editForm = document.getElementById("editForm");
+      if (editForm) {
+        editForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const sponsorId = formData.get("id");
+
+          if (!sponsorId) {
+            alert("Sponsor ID is missing");
+            return;
+          }
+
+          const data = {
+            name: formData.get("name"),
+            logo: formData.get("logo") || null,
+            website: formData.get("website") || null,
+          };
+
+          try {
+            const response = await fetch(`/api/admin/sponsors/${sponsorId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+              window.closeEditModal();
+              window.location.reload();
+            } else {
+              const error = await response.json();
+              alert("Failed to update sponsor: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error updating sponsor:", error);
+            alert("Failed to update sponsor: " + error.message);
+          }
+        });
+      }
+
+      // Delete form submission
+      const deleteForm = document.getElementById("deleteForm");
+      if (deleteForm) {
+        deleteForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const sponsorId = formData.get("id");
+
+          if (!sponsorId) {
+            alert("Sponsor ID is missing");
+            return;
+          }
+
+          try {
+            const response = await fetch(`/api/admin/sponsors/${sponsorId}`, {
+              method: "DELETE",
+            });
+
+            if (response.ok) {
+              window.closeDeleteModal();
+              window.location.reload();
+            } else {
+              const error = await response.json();
+              alert("Failed to delete sponsor: " + (error.error || "Unknown error"));
+            }
+          } catch (error) {
+            console.error("Error deleting sponsor:", error);
+            alert("Failed to delete sponsor: " + error.message);
+          }
+        });
+      }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        window.closeCreateModal();
+        window.closeEditModal();
+        window.closeDeleteModal();
+      }
+    });
+  </script>
+</AdminLayout>

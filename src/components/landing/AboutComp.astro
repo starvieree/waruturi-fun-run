@@ -1,0 +1,190 @@
+---
+// src/components/About.astro
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Fetch about content from database
+const { data: aboutData, error } = await supabase
+  .from('about_content')
+  .select('*')
+  .limit(1)
+  .single();
+
+// Fallback data if error
+const about = error || !aboutData ? {
+  title: 'Waru Turi Fun Run 2026',
+  subtitle: 'A Celebration of Movement in Green Scenery',
+  description: 'Event lomba lari rekreasi bertema "A Celebration of Movement in Green Scenery" yang menghadirkan semangat kebersamaan, gaya hidup sehat, dan sportivitas bagi seluruh peserta dari berbagai kalangan.',
+  vision: 'Menjadikan Waru Turi Fun Run sebagai ajang lari rekreasi terdepan di Jawa Timur yang mempromosikan gaya hidup sehat, pariwisata lokal, dan semangat kebersamaan tanpa batas.',
+  mission: [
+    'Mengedukasi masyarakat tentang pentingnya olahraga lari',
+    'Memperkenalkan keindahan wisata bendungan Waru Turi',
+    'Menciptakan komunitas lari yang inklusif dan suportif',
+    'Memberikan pengalaman event lari yang profesional dan menyenangkan'
+  ],
+  highlights: [
+    {
+      icon: 'fa-route',
+      title: 'Rute Eksotis',
+      description: 'Berlari dengan pemandangan bendung dan alam yang asri'
+    },
+    {
+      icon: 'fa-shield-alt',
+      title: 'Keamanan Medis',
+      description: 'Didukung tim medis profesional dan water station yang memadai'
+    },
+    {
+      icon: 'fa-gift',
+      title: 'Doorprize Menarik',
+      description: 'Undian berhadiah menarik dengan puluhan doorprize spesial'
+    },
+    {
+      icon: 'fa-users',
+      title: 'Ramah Keluarga',
+      description: 'Kategori lari yang cocok untuk pemula, anak-anak, hingga pro'
+    }
+  ],
+  organizer_profile: 'Waru Turi Fun Run 2026 dikemas sebagai sport-recreation event yang mengutamakan pengalaman lari yang aman, nyaman, dan berkesan. Diselenggarakan oleh tim profesional yang telah sukses menggerak Kelud Volcano Road Run (KVRR) selama 4 tahun berturut-turut (2016–2019), serta berbagai kompetisi olahraga dan school contest selama 17 tahun.'
+} : aboutData;
+
+// Debug
+if (error) console.error('Error fetching about content:', error);
+---
+
+<section class="py-16 bg-white dark:bg-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="/" class="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400">
+            <i class="fas fa-home mr-1"></i> Beranda
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+            <span class="ml-1 text-gray-500 dark:text-gray-400">About</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Title -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+        {about.title}
+      </h1>
+      <p class="text-xl text-green-600 dark:text-green-400 mt-2">{about.subtitle}</p>
+    </div>
+
+    <!-- Description -->
+    <div class="max-w-4xl mx-auto mb-12">
+      <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed text-center">
+        {about.description}
+      </p>
+    </div>
+
+    <!-- Highlights -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      {about.highlights?.map((highlight: { icon: any; title: unknown; description: unknown; }, index: any) => (
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 text-center hover:shadow-lg transition-shadow duration-300">
+          <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class={`fas ${highlight.icon} text-2xl text-green-600 dark:text-green-400`}></i>
+          </div>
+          <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{highlight.title}</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">{highlight.description}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Visi & Misi -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+      <!-- Visi -->
+      <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <i class="fas fa-eye text-2xl text-green-600 dark:text-green-400"></i>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Visi Kami</h2>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+          {about.vision}
+        </p>
+      </div>
+
+      <!-- Misi -->
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+          <i class="fas fa-bullseye text-2xl text-blue-600 dark:text-blue-400"></i>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Misi Kami</h2>
+        </div>
+        <ul class="space-y-3">
+          {about.mission?.map((item: unknown, index: number) => (
+            <li class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
+              <span class="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0 mt-0.5">
+                {index + 1}
+              </span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Organizer Profile -->
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-8">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+          <i class="fas fa-users-cog text-green-600 dark:text-green-400 mr-2"></i>
+          Profil Penyelenggara
+        </h2>
+        <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
+          {about.organizer_profile}
+        </p>
+        
+        <!-- Additional Info -->
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">4</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Tahun KVRR</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">17</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Tahun Pengalaman</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">1000+</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Peserta</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">5K</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Kategori Lari</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Registrant -->
+    <div class="mt-8 max-w-md mx-auto">
+      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center border border-blue-100 dark:border-blue-800">
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          <i class="fas fa-user-check text-blue-500 mr-2"></i>
+          <strong>Priyo Sambodo</strong> telah mendaftar Waru Turi Fun Run <span class="font-semibold text-green-600">10K</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    {error && (
+      <div class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p class="text-red-600 dark:text-red-400 text-center text-sm">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          Gagal memuat data. Silakan refresh halaman.
+        </p>
+      </div>
+    )}
+  </div>
+</section>

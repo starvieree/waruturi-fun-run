@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* 1. Impor tema dasar/default bawaan Flowbite */
+@import "flowbite/src/themes/default";
+
+/* 2. Beritahu Tailwind v4 untuk memindai kelas-kelas di dalam folder node_modules Flowbite */
+@source "flowbite";
+
+/* 3. Muat plugin JavaScript Flowbite untuk Tailwind v4 */
+@plugin "flowbite/plugin";

@@ -1,0 +1,90 @@
+---
+// src/components/Sponsor.astro
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Fetch all sponsors from database
+const { data: sponsors, error } = await supabase
+  .from('sponsors')
+  .select('*')
+  .order('id', { ascending: true });
+
+// Fallback data if error or no data
+const sponsorData = error || !sponsors || sponsors.length === 0 ? [
+  { id: 1, name: 'GUDANG GARAM', logo: null, website: '#' },
+  { id: 2, name: 'moxim', logo: null, website: '#' },
+  { id: 3, name: 'INDONESIA', logo: null, website: '#' },
+  { id: 4, name: 'J&T EXPRESS', logo: null, website: '#' },
+  { id: 5, name: 'BRI', logo: null, website: '#' },
+  { id: 6, name: 'EMDE', logo: null, website: '#' },
+  { id: 7, name: 'AGEN', logo: null, website: '#' },
+  { id: 8, name: 'abadiqital', logo: null, website: '#' },
+  { id: 9, name: 'DINASTI', logo: null, website: '#' },
+  { id: 10, name: 'NAAVAGREEN', logo: null, website: '#' },
+  { id: 11, name: 'ZETTA', logo: null, website: '#' },
+  { id: 12, name: 'Counterpain', logo: null, website: '#' },
+  { id: 13, name: 'Rexona', logo: null, website: '#' },
+  { id: 14, name: 'Enti Kuat Setia', logo: null, website: '#' }
+] : sponsors;
+
+// Debug
+if (error) console.error('Error fetching sponsors:', error);
+---
+
+<section class="py-12 bg-gray-50 dark:bg-gray-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h3 class="text-center text-2xl font-bold text-gray-800 dark:text-white mb-8">DIDUKUNG OLEH</h3>
+    
+    <!-- All Sponsors in one row -->
+    <div class="flex flex-wrap justify-center items-center gap-6 md:gap-10">
+      {sponsorData.map((sponsor, index) => (
+        <a 
+          key={sponsor.id}
+          href={sponsor.website || '#'} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="text-base md:text-lg font-semibold text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-all duration-300 hover:scale-110"
+        >
+          {sponsor.logo ? (
+            <img 
+              src={sponsor.logo} 
+              alt={sponsor.name} 
+              class="h-10 md:h-14 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 hover:scale-110"
+            />
+          ) : (
+            sponsor.name
+          )}
+        </a>
+      ))}
+    </div>
+
+    <!-- Separator or divider (optional) -->
+    <div class="flex justify-center items-center gap-4 mt-6">
+      <span class="text-xs text-gray-400 dark:text-gray-500">—</span>
+      <span class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">Official Partners</span>
+      <span class="text-xs text-gray-400 dark:text-gray-500">—</span>
+    </div>
+
+    <!-- Error State -->
+    {error && (
+      <div class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p class="text-red-600 dark:text-red-400 text-center text-sm">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          Gagal memuat data sponsor. Silakan refresh halaman.
+        </p>
+      </div>
+    )}
+
+    {/* Empty State */}
+    {sponsorData.length === 0 && !error && (
+      <div class="mt-6 p-8 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+        <i class="fas fa-handshake text-4xl text-gray-400 dark:text-gray-500 mb-3"></i>
+        <p class="text-gray-600 dark:text-gray-400">Belum ada sponsor yang terdaftar.</p>
+      </div>
+    )}
+  </div>
+</section>

@@ -1,0 +1,131 @@
+---
+// src/components/FAQ.astro
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Fetch FAQs from database
+const { data: faqs, error } = await supabase
+  .from('faqs')
+  .select('*')
+  .order('ordering', { ascending: true });
+
+// If error or no data, use fallback data
+const faqData = error || !faqs || faqs.length === 0 ? [
+  {
+    id: 1,
+    question: 'Apa itu Waru Turi Fun Run?',
+    answer: 'Waru Turi Fun Run adalah ajang lomba lari kategori 5K dan 10K dengan lintasan jalan raya, jalan pedesaan, dan area persawahan yang dimulai dari Bendung Gerak Waru Turi.',
+    ordering: 1
+  },
+  {
+    id: 2,
+    question: 'Di mana lokasi start dan finish?',
+    answer: 'Start dan finish berada di Bendung Gerak Waru Turi, Kabupaten Kediri.',
+    ordering: 2
+  },
+  {
+    id: 3,
+    question: 'Bagaimana cara mendaftar?',
+    answer: 'Pendaftaran dapat dilakukan melalui website resmi atau datang langsung ke sekretariat panitia.',
+    ordering: 3
+  },
+  {
+    id: 4,
+    question: 'Fasilitas apa saja yang didapat peserta?',
+    answer: 'Peserta mendapatkan Jersey Official, BIB, Finisher Medal, Goodie Bag, dan Doorprize.',
+    ordering: 4
+  },
+  {
+    id: 5,
+    question: 'Apakah boleh membawa hewan peliharaan?',
+    answer: 'Tidak diperbolehkan membawa hewan peliharaan untuk keamanan dan kenyamanan semua peserta.',
+    ordering: 5
+  },
+  {
+    id: 6,
+    question: 'Siapa saja yang boleh ikut?',
+    answer: 'Event ini terbuka untuk semua kalangan, mulai dari pelari pemula hingga profesional, usia 15-60 tahun.',
+    ordering: 6
+  }
+] : faqs;
+
+// Debug: Log data if error
+if (error) {
+  console.error('Error fetching FAQs:', error);
+}
+---
+
+<section class="py-16 bg-white dark:bg-gray-800">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h3 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-4">Pertanyaan Seputar Event</h3>
+    <p class="text-center text-gray-600 dark:text-gray-400 mb-8">Temukan jawaban atas pertanyaan umum seputar WaruTuri Run 2026 di sini.</p>
+
+    <!-- Jumlah FAQ -->
+    <div class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+      Total {faqData.length} Pertanyaan
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div id="accordion-collapse" data-accordion="collapse" class="space-y-3">
+      {faqData.map((faq, index) => (
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow duration-200">
+          <h2 id={`accordion-collapse-heading-${faq.id}`}>
+            <button
+              type="button"
+              class={`flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 gap-3 ${
+                index === 0 ? 'rounded-t-lg' : ''
+              } transition-colors duration-200`}
+              data-accordion-target={`#accordion-collapse-body-${faq.id}`}
+              aria-expanded={index === 0 ? "true" : "false"}
+              aria-controls={`accordion-collapse-body-${faq.id}`}
+            >
+              <span class="text-left flex items-start gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm font-bold flex-shrink-0 mt-0.5">
+                  {index + 1}
+                </span>
+                <span class="text-gray-900 dark:text-white">{faq.question}</span>
+              </span>
+              <svg data-accordion-icon class={`w-3 h-3 ${index === 0 ? 'rotate-180' : ''} shrink-0 transition-transform duration-200`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+              </svg>
+            </button>
+          </h2>
+          <div
+            id={`accordion-collapse-body-${faq.id}`}
+            class={index === 0 ? '' : 'hidden'}
+            aria-labelledby={`accordion-collapse-heading-${faq.id}`}
+          >
+            <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900 rounded-b-lg">
+              <div class="flex items-start gap-3">
+                <i class="fas fa-reply text-green-500 dark:text-green-400 mt-1"></i>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Loading/Error State -->
+    {error && (
+      <div class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p class="text-red-600 dark:text-red-400 text-center">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          Gagal memuat data FAQ. Silakan refresh halaman.
+        </p>
+      </div>
+    )}
+
+    {/* Empty State */}
+    {faqData.length === 0 && !error && (
+      <div class="mt-6 p-8 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+        <i class="fas fa-question-circle text-4xl text-gray-400 dark:text-gray-500 mb-3"></i>
+        <p class="text-gray-600 dark:text-gray-400">Belum ada pertanyaan yang tersedia.</p>
+      </div>
+    )}
+  </div>
+</section>

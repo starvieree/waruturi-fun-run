@@ -1,0 +1,354 @@
+---
+// AdminLayout.astro - Sidebar terintegrasi
+export interface Props {
+  title?: string;
+}
+
+const { title = "Admin Panel" } = Astro.props;
+
+import { supabase } from "../lib/supabase";
+
+// Ambil path saat ini untuk menentukan menu aktif
+const currentPath = Astro.url.pathname;
+
+// Data menu untuk menghindari duplikasi
+const menuItems = [
+  { path: "/admin", icon: "fa-chart-pie", label: "Dashboard" },
+  { path: "/admin/profiles", icon: "fa-user", label: "Profiles" },
+  { path: "/admin/events", icon: "fa-calendar-alt", label: "Events" },
+  { path: "/admin/registrations", icon: "fa-clipboard-list", label: "Registrations" },
+  { path: "/admin/news", icon: "fa-newspaper", label: "News" },
+  { path: "/admin/categories", icon: "fa-tags", label: "Categories" },
+  { path: "/admin/jerseys", icon: "fa-tshirt", label: "Jerseys" },
+  { path: "/admin/medals", icon: "fa-medal", label: "Medals" },
+  { path: "/admin/galleries", icon: "fa-images", label: "Galleries" },
+  { path: "/admin/faqs", icon: "fa-question-circle", label: "FAQs" },
+  { path: "/admin/sponsors", icon: "fa-handshake", label: "Sponsors" },
+  { path: "/admin/timelines", icon: "fa-clock", label: "Timelines" },
+];
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <!-- Flowbite CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"
+    />
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900">
+    <div class="flex h-screen overflow-hidden">
+      <!-- ===== SIDEBAR (Desktop & Mobile) ===== -->
+      <!-- Desktop: visible di md ke atas, Mobile: hidden dan diatur dengan transform -->
+      <aside
+        id="sidebar"
+        class="fixed md:relative md:translate-x-0 z-50 w-64 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out -translate-x-full"
+      >
+        <!-- HEADER SIDEBAR - Logo & Brand -->
+        <div
+          class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
+        >
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"
+            >
+              <i class="fas fa-cube"></i>
+            </div>
+            <span class="text-xl font-semibold text-gray-800 dark:text-white"
+              >AdminPanel</span
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              class="text-xs font-medium text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 px-2.5 py-0.5 rounded-full hidden md:inline"
+              >v1.0</span
+            >
+            <!-- Tombol close untuk mobile -->
+            <button
+              id="closeSidebar"
+              class="md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+            >
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- MENU NAVIGASI -->
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {menuItems.map((item) => (
+            <a
+              href={item.path}
+              class={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                currentPath === item.path
+                  ? "text-blue-600 bg-blue-50 dark:bg-blue-900/50 dark:text-blue-300"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              <i
+                class={`fas ${item.icon} w-5 text-center mr-3 ${
+                  currentPath === item.path
+                    ? "text-blue-600 dark:text-blue-300"
+                    : "text-gray-400 dark:text-gray-500"
+                }`}
+              ></i>
+              {item.label}
+            </a>
+          ))}
+
+          <hr class="my-3 border-gray-200 dark:border-gray-700" />
+
+          <!-- Logout -->
+          <form method="POST" action="/api/auth/logout" class="block w-full">
+            <button
+              type="submit"
+              class="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left focus:outline-none cursor-pointer"
+            >
+              <i class="fas fa-sign-out-alt w-5 text-center mr-3 text-red-400"></i>
+              Keluar
+            </button>
+          </form>
+        </nav>
+      </aside>
+
+      <!-- OVERLAY untuk mobile -->
+      <div
+        id="sidebarOverlay"
+        class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm hidden md:hidden"
+      ></div>
+
+      <!-- ===== KONTEN UTAMA ===== -->
+      <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        <!-- ===== HEADER ===== -->
+        <header
+          class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 h-16 flex items-center justify-between flex-shrink-0"
+        >
+          <div class="flex items-center gap-3">
+            <!-- Toggle Sidebar Mobile -->
+            <button
+              id="menuToggle"
+              class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl focus:outline-none"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="text-lg font-semibold text-gray-800 dark:text-white">
+              {title}
+            </h1>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <!-- Notifikasi (opsional) -->
+            <button
+              type="button"
+              class="relative text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <!-- <i class="fas fa-bell text-xl"></i>
+              <span
+                class="absolute -top-1 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center"
+                >3</span
+              > -->
+            </button>
+
+            <!-- Profil -->
+            <div class="flex items-center gap-2.5">
+              <img
+                src="https://ui-avatars.com/api/?name=Admin+Panel&background=3b82f6&color=fff&size=36"
+                alt="Admin"
+                class="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-gray-600"
+              />
+              <span
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block"
+                >Admin</span
+              >
+            </div>
+          </div>
+        </header>
+
+        <!-- ===== BODY ===== -->
+        <main
+          class="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto"
+        >
+          <slot />
+        </main>
+
+        <!-- ===== FOOTER ===== -->
+        <footer
+          class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0"
+        >
+          <span>&copy; 2026 AdminPanel. All rights reserved.</span>
+          <div class="flex items-center gap-4">
+            <a
+              href="#"
+              class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >Kebijakan</a
+            >
+            <a
+              href="#"
+              class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >Bantuan</a
+            >
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+              Sistem aktif
+            </span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ===== SCRIPT ===== -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.getElementById("menuToggle");
+        const closeSidebar = document.getElementById("closeSidebar");
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+        // Cek ukuran layar saat load
+        function isDesktop() {
+          return window.innerWidth >= 768;
+        }
+
+        function openSidebar() {
+          if (sidebar && sidebarOverlay) {
+            sidebar.classList.remove("-translate-x-full");
+            sidebarOverlay.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+          }
+        }
+
+        function closeSidebarFn() {
+          if (sidebar && sidebarOverlay) {
+            sidebar.classList.add("-translate-x-full");
+            sidebarOverlay.classList.add("hidden");
+            document.body.style.overflow = "";
+          }
+        }
+
+        // Inisialisasi - pastikan sidebar desktop terlihat
+        function initSidebar() {
+          if (isDesktop()) {
+            // Desktop: sidebar terlihat, overlay hidden
+            if (sidebar) {
+              sidebar.classList.remove("-translate-x-full");
+            }
+            if (sidebarOverlay) {
+              sidebarOverlay.classList.add("hidden");
+            }
+            document.body.style.overflow = "";
+          } else {
+            // Mobile: sidebar tersembunyi, overlay hidden
+            if (sidebar) {
+              sidebar.classList.add("-translate-x-full");
+            }
+            if (sidebarOverlay) {
+              sidebarOverlay.classList.add("hidden");
+            }
+            document.body.style.overflow = "";
+          }
+        }
+
+        // Jalankan init
+        initSidebar();
+
+        if (menuToggle) {
+          menuToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            // Hanya di mobile
+            if (!isDesktop()) {
+              if (sidebar && sidebar.classList.contains("-translate-x-full")) {
+                openSidebar();
+              } else {
+                closeSidebarFn();
+              }
+            }
+          });
+        }
+
+        if (closeSidebar) {
+          closeSidebar.addEventListener("click", function (e) {
+            e.preventDefault();
+            closeSidebarFn();
+          });
+        }
+
+        if (sidebarOverlay) {
+          sidebarOverlay.addEventListener("click", function (e) {
+            closeSidebarFn();
+          });
+        }
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            if (sidebar && !sidebar.classList.contains("-translate-x-full") && !isDesktop()) {
+              closeSidebarFn();
+            }
+          }
+        });
+
+        // Handler saat resize
+        let resizeTimer: number | undefined;
+        window.addEventListener("resize", function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function () {
+            const desktop = isDesktop();
+            
+            if (desktop) {
+              // Saat ke desktop, pastikan sidebar terlihat
+              if (sidebar) {
+                sidebar.classList.remove("-translate-x-full");
+              }
+              if (sidebarOverlay) {
+                sidebarOverlay.classList.add("hidden");
+              }
+              document.body.style.overflow = "";
+            } else {
+              // Saat ke mobile, sembunyikan sidebar (kecuali sedang terbuka)
+              // Jangan paksa close jika sedang terbuka
+              if (sidebar && !sidebar.classList.contains("-translate-x-full")) {
+                // Biarkan terbuka, user mungkin sedang menggunakan
+              }
+            }
+          }, 150);
+        });
+
+        // Media query listener
+        const mediaQuery = window.matchMedia("(min-width: 768px)");
+        mediaQuery.addEventListener("change", function (e) {
+          if (e.matches) {
+            // Ke desktop
+            if (sidebar) {
+              sidebar.classList.remove("-translate-x-full");
+            }
+            if (sidebarOverlay) {
+              sidebarOverlay.classList.add("hidden");
+            }
+            document.body.style.overflow = "";
+          } else {
+            // Ke mobile - tutup sidebar
+            if (sidebar) {
+              sidebar.classList.add("-translate-x-full");
+            }
+            if (sidebarOverlay) {
+              sidebarOverlay.classList.add("hidden");
+            }
+            document.body.style.overflow = "";
+          }
+        });
+      });
+    </script>
+
+    <!-- Flowbite JS -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"
+    ></script>
+  </body>
+</html>

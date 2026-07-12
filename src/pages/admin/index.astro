@@ -1,0 +1,165 @@
+---
+// src/pages/admin/index.astro
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { supabase } from '../../lib/supabase';
+
+// Count all tables
+const [{ count: profilesCount }, { count: eventsCount }, { count: registrationsCount }, { count: newsCount }] = await Promise.all([
+  supabase.from('profiles').select('*', { count: 'exact', head: true }),
+  supabase.from('events').select('*', { count: 'exact', head: true }),
+  supabase.from('registrations').select('*', { count: 'exact', head: true }),
+  supabase.from('news').select('*', { count: 'exact', head: true })
+]);
+
+// Recent registrations
+const { data: recentRegistrations } = await supabase
+  .from('registrations')
+  .select('*, events(title)')
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+// Recent events
+const { data: recentEvents } = await supabase
+  .from('events')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(5);
+---
+
+<AdminLayout title="Dashboard Admin">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <!-- Card Total Profiles -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+          <i class="fas fa-users text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pengguna</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{profilesCount || 0}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Total Events -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+          <i class="fas fa-calendar-alt text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Event</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{eventsCount || 0}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Total Registrations -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400">
+          <i class="fas fa-clipboard-list text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pendaftaran</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{registrationsCount || 0}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Total News -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
+          <i class="fas fa-newspaper text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Berita</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{newsCount || 0}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <!-- Recent Registrations -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-clock text-blue-500"></i> Pendaftaran Terbaru
+        </h2>
+        <a href="/admin/registrations" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">Lihat semua →</a>
+      </div>
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        {recentRegistrations && recentRegistrations.length > 0 ? (
+          recentRegistrations.map((reg) => (
+            <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <p class="font-medium text-gray-900 dark:text-white">{reg.fullname}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{reg.email} • {reg.events?.title || 'Event'}</p>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {reg.payment_status || 'Pending'}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div class="p-4 text-center text-gray-500 dark:text-gray-400">Belum ada pendaftaran</div>
+        )}
+      </div>
+    </div>
+
+    <!-- Quick Access -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fas fa-rocket text-blue-500"></i> Akses Cepat
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 gap-2 p-5">
+        <a href="/admin/profiles" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-center">
+          <i class="fas fa-users text-2xl text-blue-600 dark:text-blue-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Profiles</p>
+        </a>
+        <a href="/admin/events" class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-center">
+          <i class="fas fa-calendar-alt text-2xl text-purple-600 dark:text-purple-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Events</p>
+        </a>
+        <a href="/admin/registrations" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-center">
+          <i class="fas fa-clipboard-list text-2xl text-green-600 dark:text-green-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Registrations</p>
+        </a>
+        <a href="/admin/news" class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors text-center">
+          <i class="fas fa-newspaper text-2xl text-amber-600 dark:text-amber-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">News</p>
+        </a>
+        <a href="/admin/categories" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-center">
+          <i class="fas fa-tags text-2xl text-red-600 dark:text-red-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Categories</p>
+        </a>
+        <a href="/admin/jerseys" class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-center">
+          <i class="fas fa-tshirt text-2xl text-indigo-600 dark:text-indigo-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Jerseys</p>
+        </a>
+        <a href="/admin/medals" class="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors text-center">
+          <i class="fas fa-medal text-2xl text-rose-600 dark:text-rose-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Medals</p>
+        </a>
+        <a href="/admin/galleries" class="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors text-center">
+          <i class="fas fa-images text-2xl text-teal-600 dark:text-teal-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Galleries</p>
+        </a>
+        <a href="/admin/faqs" class="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-center">
+          <i class="fas fa-question-circle text-2xl text-orange-600 dark:text-orange-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">FAQs</p>
+        </a>
+        <a href="/admin/sponsors" class="p-4 bg-pink-50 dark:bg-pink-900/20 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors text-center">
+          <i class="fas fa-handshake text-2xl text-pink-600 dark:text-pink-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Sponsors</p>
+        </a>
+        <a href="/admin/timelines" class="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors text-center">
+          <i class="fas fa-road text-2xl text-cyan-600 dark:text-cyan-400"></i>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">Timelines</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
