@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^11.0.2",
+    "@astrojs/vercel": "^11.0.2",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.2",
     "@tailwindcss/vite": "^4.3.2",
