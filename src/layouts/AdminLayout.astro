@@ -16,7 +16,7 @@ const menuItems = [
   { path: "/admin", icon: "fa-chart-pie", label: "Dashboard" },
   { path: "/admin/profiles", icon: "fa-user", label: "Profiles" },
   { path: "/admin/events", icon: "fa-calendar-alt", label: "Events" },
-  { path: "/admin/registrations", icon: "fa-clipboard-list", label: "Registrations" },
+  { path: "/admin/participant", icon: "fa-clipboard-list", label: "Participant" },
   { path: "/admin/news", icon: "fa-newspaper", label: "News" },
   { path: "/admin/categories", icon: "fa-tags", label: "Categories" },
   { path: "/admin/jerseys", icon: "fa-tshirt", label: "Jerseys" },
@@ -295,7 +295,7 @@ const menuItems = [
         });
 
         // Handler saat resize
-        let resizeTimer: number | undefined;
+        let resizeTimer: ReturnType<typeof setTimeout> | undefined;
         window.addEventListener("resize", function () {
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(function () {
